@@ -3,7 +3,7 @@
 
 
 -> This is how the website looks when you first open it
-
+![1](https://user-images.githubusercontent.com/43792460/85571320-af6d3f00-b651-11ea-9bb2-efaaee6103da.PNG)
 
 -> Select image and enter username
 
