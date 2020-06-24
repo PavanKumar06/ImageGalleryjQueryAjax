@@ -1,0 +1,304 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <style>
+        .split1 {
+            height: 100%;
+            width: 25%;
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            background-color: #6f8cc3;
+        }
+
+        .centered {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .split2 {
+            height: 100%;
+            width: 75%;
+            position: absolute;
+            top: 0px;
+            right: 0px;
+            background-color: #e5efe9;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        .gallery {
+            margin: 6px;
+            float: left;
+            width: 365px;
+        }
+
+        .desc {
+            padding: 9px;
+            text-align: center;
+            font-size: large;
+            font-family: 'Times New Roman';
+            color: deepskyblue;
+        }
+
+        .img {
+            height: 220px;
+            width: 369px;
+            border-radius: 10%;
+            opacity: 0.7;
+            transition: 0.3s;
+        }
+
+            .img:hover {
+                opacity: 1;
+            }
+
+        .button {
+            background-color: #e91640;
+            border: none;
+            color: white;
+            padding: 16px 32px;
+            font-size: 16px;
+            margin: 4px 2px;
+            opacity: 0.7;
+            transition: 0.3s;
+            cursor: pointer;
+            border-radius: 11px;
+        }
+
+        .button:hover {
+            opacity: 1
+        }
+
+        .dropbtn {
+            background-color: #bd1e24;
+            color: white;
+            padding: 16px 32px;
+            border-radius: 11px;
+            font-size: 24px;
+            cursor: pointer;
+            border: none;
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+            padding-top: 3px;
+            padding-left: 3px;
+        }
+
+        .content {
+            display: none;
+            position: absolute;
+            background-color: #f1f1f1;
+            min-width: 160px;
+        }
+
+            .content a {
+                color: black;
+                padding: 12px 16px;
+                text-decoration: none;
+                cursor: pointer;
+                display: block;
+            }
+
+                .content a:hover {
+                    background-color: #ddd;
+                }
+
+        .dropdown:hover .content {
+            display: block;
+        }
+
+        .dropdown:hover .dropbtn {
+            background-color: #bd1e24;
+        }
+
+        input[type='text'] {
+            font-size: 24px;
+        }
+
+        input[type='submit'] {
+            font-size: 24px;
+        }
+
+        input.ng-invalid {
+            background-color: lightblue;
+        }
+    </style>
+    <script src="Scripts/jquery-3.3.1.js"></script>
+    <script src="Scripts/angular.js"></script>
+    <script>
+        var loadFile = function (event) {
+            var image = document.getElementById('output');
+            image.src = URL.createObjectURL(event.target.files[0]);
+        };
+        $(document).ready(function () {
+            var pv = $('#div');
+            var vp = $('#con1');
+            var dl = $('#con2');
+            var v;
+            var url;
+            var user;
+            get();
+            $('#post').click(function () {
+                v = new Object();
+                if ($('#file').val() == '') {
+                    alert("Please Upload a File!!!");
+                    return;
+                }
+                var file = $('#file')[0];
+                var user = $('#user').val();
+                if (user.length == 0) {
+                    alert("Please Enter a User Name!!!");
+                    return;
+                }
+                var date = new Date();
+                var datime = date.getDate() + "-" + date.getMonth() + "-" + date.getFullYear() + "  " +
+                    date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
+                var formdata = new FormData();
+                formdata.append('file', file.files[0]);
+                formdata.append('user', user);
+                formdata.append('datime', datime);
+                $.ajax({
+                    type: 'POST',
+                    url: 'api/FilePrj/UploadFile',
+                    data: formdata,
+                    contentType: false,
+                    processData: false,
+                    success: function (val) {
+                        url = "http://127.0.0.1:8887/" + val.FileName + "." + val.FileType;
+                        user = val.UserName + '</br>' + "Uploaded On: " + val.Date;
+                        pv.append('<div class="gallery"><img src=' + url + ' class="img"/><button id=' + val.Id +
+                            ' title="Delete" style="cursor: pointer;' +
+                            ' position: relative; bottom: 223px; left: 346.5px;" class="remove">x</button>' +
+                            '<div style="position:relative; bottom:23px;" class="desc">' + user +
+                            '</div></div>');
+                        if (!v.hasOwnProperty(val.UserName)) {
+                            v[val.UserName] = true;
+                            vp.append('<a id="' + val.UserName + '" class="getname">' + val.UserName + '</a>');
+                        }
+                        dl.append('<a id="' + val.FileName + '" class="update">' + val.FileName + '</a>');
+                    }
+                })
+            });
+            function get() {
+                v = new Object();
+                $.ajax({
+                    type: 'Get',
+                    url: 'api/FilePrj',
+                    dataType: 'json',
+                    success: function (data) {
+                        pv.empty();
+                        $.each(data, function (i, val) {
+                            url = "http://127.0.0.1:8887/" + val.FileName + "." + val.FileType;
+                            user = val.UserName + '</br>' + "Uploaded On: " + val.Date;
+                            pv.append('<div class="gallery"><img src=' + url + ' class="img"/><button id=' + val.Id +
+                                ' title="Delete" style="cursor: pointer;' +
+                                ' position: relative; bottom: 223px; left: 346.5px;" class="remove">x</button>' +
+                                '<div style="position:relative; bottom:23px;" class="desc"><strong>' + user +
+                                '</strong></div></div>');
+                            if (!v.hasOwnProperty(val.UserName)) {
+                                v[val.UserName] = true;
+                                vp.append('<a id="' + val.UserName + '" class="getname">' + val.UserName + '</a>');
+                            }
+                            dl.append('<a id="' + val.FileName + '" class="update">' + val.FileName + '</a>');
+                        })
+                    }
+                })
+            }
+            vp.delegate('.getname', 'click', function () {
+                var uname = $(this).attr('id');
+                $.ajax({
+                    type: 'Get',
+                    url: 'api/FilePrj/?uname=' + uname,
+                    dataType: 'json',
+                    success: function (data) {
+                        pv.empty();
+                        $.each(data, function (i, val) {
+                            url = "http://127.0.0.1:8887/" + val.FileName + "." + val.FileType;
+                            user = val.UserName + '</br>' + "Uploaded On: " + val.Date;
+                            pv.append('<div class="gallery"><img src=' + url + ' class="img"/><button id=' + val.Id +
+                                ' title="Delete" style="cursor: pointer;' +
+                                ' position: relative; bottom: 223px; left: 346.5px;" class="remove">x</button>' +
+                                '<div style="position:relative; bottom:23px;" class="desc">' + user +
+                                '</div></div>');
+                        })
+                    }
+                })
+            });
+            pv.delegate('.remove', 'click', function () {
+                var del = $(this).attr('id');
+                var re = $(this).closest('div');
+                $('.getname').remove();
+                $('.update').remove();
+                $.ajax({
+                    type: 'Delete',
+                    url: 'api/FilePrj/' + del,
+                    success: function (data) {
+                        re.remove();
+                        get();
+                    }
+                })
+            });
+            dl.delegate('.update', 'click', function () {
+                var fname = $(this).attr('id');
+                var uname = $('#uname').val();
+                if (uname.length == 0) {
+                    alert("Please Enter a Name!!!");
+                    return;
+                }
+                var date = new Date();
+                var datime = date.getDate() + "-" + date.getMonth() + "-" + date.getFullYear() + "  " +
+                    date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
+                var detail = {
+                    UserName: uname,
+                    FileName: fname,
+                    Date: datime
+                }
+                $('.getname').remove();
+                $('.update').remove();
+                $.ajax({
+                    type: 'Put',
+                    url: 'api/FilePrj/?fname=' + fname,
+                    data: detail,
+                    success: function (data) {
+                        get();
+                    }
+                })
+            });
+        });
+    </script>
+</head>
+<body>
+    <div ng-app="">
+        <div class="split1">
+            <div class="centered">
+                <p><img id="output" style="width: 369px; border-radius: 10%;" /></p>
+                <p><input type="file" id="file" accept="image/*" onchange="loadFile(event)" style="display: none;" /></p>
+                <p><label for="file" style="font-family: Arial; font-size: 40px; color: white; cursor: pointer;">Select Image</label></p>
+                <p><input ng-model="myText" required type="text" id="user" placeholder="User Name" style="border: 2px solid red; border-radius: 4px;" /></p>
+                <p><input type="submit" id="post" value="Upload" class="button" /></p>
+            </div>
+        </div>
+        <div class="split2">
+            <div class="dropdown">
+                <button class="dropbtn">Get Image</button>
+                <div id="con1" style="z-index:1;" class="content">
+                </div>
+            </div>
+            <input ng-model="myText" required type="text" id="uname" placeholder="Update User" style="position:relative; left:569px; border: 2px solid red; border-radius: 4px;" />
+            <div class="dropdown">
+                <button class="dropbtn">Update Image</button>
+                <div id="con2" style="z-index:1;" class="content">
+                </div>
+            </div>
+            <div id="div"></div>
+        </div>
+    </div>
+</body>
+</html>
